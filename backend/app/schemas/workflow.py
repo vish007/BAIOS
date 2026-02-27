@@ -1,3 +1,5 @@
+"""Schemas for workflow orchestration APIs."""
+
 from pydantic import BaseModel
 
 
@@ -12,8 +14,3 @@ class WorkflowRunResponse(BaseModel):
     status: str
     provider: str
     output: dict
-
-
-class MakerCheckerResolveRequest(BaseModel):
-    checker_decision: str
-    checker_note: str

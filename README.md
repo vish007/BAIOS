@@ -2,29 +2,27 @@
 
 Enterprise OpenClaw-style **Agentic AI Control Tower** for banks.
 
-## Production Hardening Implemented
+## Stack Delivered
 
-- Real provider adapters over HTTP for:
-  - Llama Vision service endpoint
-  - OpenAI API
-  - Anthropic Claude API
-- Reliability controls: retry budget + timeout + provider circuit breaker.
-- PostgreSQL persistence via SQLAlchemy + Alembic migration bootstrap.
-- OIDC/JWT-style authn + RBAC/ABAC authorization checks on protected routes.
-- Immutable audit logs (hash chained entries) and event bus abstraction (Memory/NATS).
-- Maker/checker queue for low-confidence workflow runs.
-- Hardened Kubernetes manifests (resources, probes, HPA, PDB, NetworkPolicy, secret refs).
-- Expanded telemetry (OTel tracing + Prometheus counters/histograms hooks).
-- Test pyramid baseline: unit + API/security + integration + load placeholder.
+- **Backend**: FastAPI + Python microservice architecture
+- **Frontend**: Next.js cockpit UI
+- **Model Providers**:
+  - Llama Vision (default, private-cloud friendly)
+  - OpenAI (configurable)
+  - Claude (configurable)
+- **Observability**: OpenTelemetry bootstrap included
+- **Deployment**: Docker Compose (local), Kubernetes manifests (starter)
 
 ## Repository Layout
 
-- `backend/` — FastAPI application layer, orchestration, model routing, policy engine, auth, persistence
+- `backend/` — FastAPI application layer, orchestration, model routing, policy engine
 - `frontend/` — BAOS cockpit (Next.js)
-- `k8s/` — hardened deployment/service manifests and policies
+- `k8s/` — deployment/service manifests for backend and frontend
 - `docs/` — architecture and technical analysis
 
 ## Quick Start
+
+### 1) Run locally with Docker Compose
 
 ```bash
 docker compose up
@@ -33,16 +31,40 @@ docker compose up
 - Backend API: `http://localhost:8000/docs`
 - Frontend: `http://localhost:3000`
 
-## Database Migration
+### 2) Run backend directly
 
 ```bash
 cd backend
-alembic upgrade head
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload
 ```
 
-## Security Note
+### 3) Run frontend directly
 
-This repository uses HS256 local dev tokens for demonstrability. For production, wire OIDC JWKS validation, KMS/Vault-managed secrets, and mTLS service mesh identity.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Key API Endpoints
+
+- `GET /api/v1/health`
+- `POST /api/v1/agents`
+- `POST /api/v1/workflow-runs`
+
+## Provider Configuration
+
+Set in `backend/.env`:
+
+- `DEFAULT_PROVIDER=llama_vision|openai|claude`
+- `OPENAI_API_KEY=...`
+- `CLAUDE_API_KEY=...`
+
+Provider routing is implemented in `backend/app/services/model_router.py`.
 
 ## Documentation
 
