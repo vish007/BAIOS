@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baos-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: baos-backend
+  template:
+    metadata:
+      labels:
+        app: baos-backend
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["baos-backend"]
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: backend
+          image: your-registry/baos-backend:latest
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+          env:
+            - name: DEFAULT_PROVIDER
+              value: "llama_vision"
+            - name: OTEL_ENDPOINT
+              value: "http://otel-collector:4318/v1/traces"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: baos-secrets
+                  key: jwt-secret
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: baos-secrets
+                  key: openai-api-key
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: baos-backend-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: baos-backend
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: baos-backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: baos-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: baos-backend-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: baos-backend
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: baos-frontend
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 4222
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baos-backend
+spec:
+  selector:
+    app: baos-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
