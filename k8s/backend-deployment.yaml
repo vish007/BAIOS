@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baos-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: baos-backend
+  template:
+    metadata:
+      labels:
+        app: baos-backend
+    spec:
+      containers:
+        - name: backend
+          image: your-registry/baos-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DEFAULT_PROVIDER
+              value: "llama_vision"
+            - name: OTEL_ENDPOINT
+              value: "http://otel-collector:4318/v1/traces"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baos-backend
+spec:
+  selector:
+    app: baos-backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
