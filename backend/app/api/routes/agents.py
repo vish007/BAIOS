@@ -30,3 +30,11 @@ async def create_agent(
     db.commit()
     append_audit_log(db, actor_id=user.sub, action="agents:create", resource=row.id, details={"name": row.name})
     return AgentResponse(id=row.id, name=row.name, status="active", version="v1.0.0")
+async def create_agent(request: AgentCreateRequest) -> AgentResponse:
+    # Placeholder persistence. Replace with repository + DB transaction.
+    return AgentResponse(
+        id=str(uuid4()),
+        name=request.name,
+        status="active",
+        version="v1.0.0",
+    )

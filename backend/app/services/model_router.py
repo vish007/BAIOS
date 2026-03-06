@@ -1,5 +1,14 @@
 from app.core.config import Settings
 from app.services.llm_providers import ClaudeProvider, LlamaVisionProvider, LLMProvider, OpenAIProvider
+"""Model router picks provider/model based on runtime config + request override."""
+
+from app.core.config import Settings
+from app.services.llm_providers import (
+    ClaudeProvider,
+    LlamaVisionProvider,
+    LLMProvider,
+    OpenAIProvider,
+)
 
 
 class ModelRouter:
@@ -13,3 +22,11 @@ class ModelRouter:
         if provider == "claude":
             return ClaudeProvider(settings=self.settings, model=self.settings.claude_model)
         return LlamaVisionProvider(settings=self.settings, model=self.settings.llama_vision_model)
+
+        if provider == "openai":
+            return OpenAIProvider(model=self.settings.openai_model)
+        if provider == "claude":
+            return ClaudeProvider(model=self.settings.claude_model)
+
+        # Default enterprise-safe path: private model on bank-owned infra.
+        return LlamaVisionProvider(model=self.settings.llama_vision_model)

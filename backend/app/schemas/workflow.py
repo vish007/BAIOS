@@ -1,3 +1,5 @@
+"""Schemas for workflow orchestration APIs."""
+
 from pydantic import BaseModel
 
 

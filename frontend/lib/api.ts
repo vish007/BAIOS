@@ -7,19 +7,14 @@ export type WorkflowRunPayload = {
 const BASE_URL = process.env.NEXT_PUBLIC_BAOS_API_URL ?? "http://localhost:8000/api/v1";
 
 export async function runWorkflow(payload: WorkflowRunPayload) {
-  const token = process.env.NEXT_PUBLIC_DEV_JWT ?? "";
   const response = await fetch(`${BASE_URL}/workflow-runs`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Workflow run failed with status ${response.status}: ${body}`);
+    throw new Error(`Workflow run failed with status ${response.status}`);
   }
 
   return response.json();

@@ -2,6 +2,15 @@ from functools import lru_cache
 from typing import Literal
 
 from pydantic import Field
+"""Application configuration and provider routing.
+
+This file centralizes environment-driven settings so operators can switch
+between Llama Vision, OpenAI, and Claude without touching service code.
+"""
+
+from functools import lru_cache
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +25,10 @@ class Settings(BaseSettings):
 
     default_provider: Literal["llama_vision", "openai", "claude"] = "llama_vision"
     llama_vision_url: str = "http://localhost:8080/v1/chat/completions"
+    # Provider selected by default at runtime.
+    default_provider: Literal["llama_vision", "openai", "claude"] = "llama_vision"
+
+    # Model aliases keep frontend/API decoupled from provider model naming.
     llama_vision_model: str = "meta-llama/Llama-3.2-11B-Vision-Instruct"
     openai_model: str = "gpt-4o-mini"
     claude_model: str = "claude-3-5-sonnet-latest"
@@ -34,6 +47,8 @@ class Settings(BaseSettings):
     otel_endpoint: str | None = None
     cors_origins: str = "http://localhost:3000"
     confidence_threshold: float = 0.85
+
+    otel_endpoint: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

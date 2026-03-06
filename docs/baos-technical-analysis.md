@@ -319,22 +319,3 @@ BAOS is designed for **private cloud deployment** on bank-owned Kubernetes, with
 3. Kubernetes Helm/Kustomize baseline for all layers.
 4. Policy-as-code starter bundle and simulation tests.
 5. Trade finance synthetic data set + benchmark harness.
-
----
-
-## 15. Implementation Mapping (Current Repository)
-
-The repository now includes a production-hardening scaffold aligned to the architecture above:
-
-- FastAPI control plane APIs and routing under `backend/app/api/routes`.
-- Security controls (JWT + RBAC/ABAC) under `backend/app/core/security.py`.
-- SQLAlchemy models and Alembic migrations under `backend/app/models.py` and `backend/alembic`.
-- Real model provider adapters for Llama/OpenAI/Claude under `backend/app/services/llm_providers.py`.
-- Workflow orchestration + maker/checker queue under `backend/app/orchestration/workflow_engine.py`.
-- Audit/eventing under `backend/app/services/audit.py` and `backend/app/services/event_bus.py`.
-- Telemetry bootstrap under `backend/app/observability/telemetry.py`.
-- Frontend cockpit under `frontend/` and infra manifests under `docker-compose.yml` and `k8s/`.
-
-For a developer-friendly deep dive into functional runtime flow and step-by-step skill extension (OCR, Analytics, Voice, PPT, Excel), refer to:
-
-- `docs/architecture-functional-flow-and-skills.md`
