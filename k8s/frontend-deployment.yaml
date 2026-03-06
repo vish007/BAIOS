@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: baos-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: baos-frontend
+  template:
+    metadata:
+      labels:
+        app: baos-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: your-registry/baos-frontend:latest
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          env:
+            - name: NEXT_PUBLIC_BAOS_API_URL
+              value: "https://baos-backend.bank.internal/api/v1"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: baos-frontend-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: baos-frontend
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: baos-frontend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: baos-frontend
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: baos-frontend
+spec:
+  selector:
+    app: baos-frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
